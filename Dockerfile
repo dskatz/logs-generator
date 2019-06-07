@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:alpine AS build-env
+FROM golang:1.12.5-stretch AS build-env
 
-RUN apk add curl git make bash --update
-
+RUN apt-get update && apt-get -y install make git
 ENV GO111MODULE=on
 WORKDIR /go/src/log-generator
 
@@ -24,11 +23,11 @@ RUN go mod download
 COPY . .
 RUN make
 
-FROM alpine
+FROM busybox
 COPY --from=build-env /go/src/log-generator/bin/logs-generator /
 
 ENV LOGS_GENERATOR_LINES_TOTAL 1
 ENV LOGS_GENERATOR_DURATION 1s
 ENV LOGS_GENERATION_MAX_KB=400 
 
-CMD ["sh", "-c", "/logs-generator --logtostderr --log-lines-total=${LOGS_GENERATOR_LINES_TOTAL} --run-duration=${LOGS_GENERATOR_DURATION} --log-lines-max-kb=${LOGS_GENERATION_MAX_KB}"]
+CMD ["sh", "-c", "/logs-generator  --log-lines-total=${LOGS_GENERATOR_LINES_TOTAL} --run-duration=${LOGS_GENERATOR_DURATION} --log-lines-max-kb=${LOGS_GENERATOR_MAX_KB}"]

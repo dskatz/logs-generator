@@ -9,11 +9,19 @@ help:
 
 .PHONY: build
 build: ## go build for default arch
-	go build -o bin/$(NAME) logs_generator.go
+	CGO_ENABLED=0 GOARM=7 GOARCH=amd64 go build -a -installsuffix cgo --ldflags '-w' -o bin/$(NAME) logs_generator.go
 
 .PHONY: docker
 docker: ## build within a docker container
 	docker build -t $(NAME)  .
+
+
+run: docker
+	docker run -i \
+  	-e "LOGS_GENERATOR_LINES_TOTAL=10" \
+  	-e "LOGS_GENERATOR_DURATION=1s" \
+		-e "LOGS_GENERATOR_MAX_KB=8000" \
+		logs-generator:latest
 
 .PHONY: clean
 clean: ## clean all 'dist' targets
